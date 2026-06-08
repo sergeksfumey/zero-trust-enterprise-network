@@ -1,0 +1,7 @@
+# Copy to prod.tfvars -- DO NOT commit to version control
+
+hub_resource_group_name   = "rg-zero-trust-hub-prod"
+spoke_resource_group_name = "rg-zero-trust-spoke-prod"
+location                  = "westeurope"
+corp_ip_ranges            = ["<office-ip>/32", "<vpn-ip>/24"]
+break_glass_group_id      = "<break-glass-group-object-id>"

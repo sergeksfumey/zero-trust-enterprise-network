@@ -1,0 +1,19 @@
+// Azure Firewall Threat Detection
+// Data source: AzureDiagnostics (Azure Firewall diagnostic logs)
+// Detects: IDPS signatures, threat intelligence hits, blocked traffic patterns
+
+AzureDiagnostics
+| where TimeGenerated > ago(1h)
+| where Category in ("AZFWIdpsSignature", "AZFWThreatIntel")
+| extend
+    SignatureId   = tostring(column_ifexists("SignatureId_s", "")),
+    Description   = tostring(column_ifexists("Description_s", "")),
+    SourceIP      = tostring(column_ifexists("SourceIp_s", "")),
+    DestinationIP = tostring(column_ifexists("DestinationIp_s", "")),
+    Action        = tostring(column_ifexists("Action_s", ""))
+| where Action == "Deny" or Category == "AZFWThreatIntel"
+| summarize
+    HitCount      = count(),
+    UniqueSourceIPs = dcount(SourceIP)
+    by SignatureId, Description, Action, bin(TimeGenerated, 1h)
+| order by HitCount desc

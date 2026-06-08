@@ -1,0 +1,20 @@
+// JIT VM Access Audit Trail
+// Data source: AzureActivity (Azure Activity connector)
+// Tracks all JIT access requests, approvals, and automatic closures
+
+AzureActivity
+| where TimeGenerated > ago(7d)
+| where OperationNameValue contains "Microsoft.Security/locations/jitNetworkAccessPolicies"
+| extend
+    Action       = tostring(parse_json(Properties).requestBody),
+    RequestedBy  = Caller,
+    TargetVM     = tostring(parse_json(Properties).resource)
+| project
+    TimeGenerated,
+    OperationNameValue,
+    RequestedBy,
+    TargetVM,
+    ActivityStatusValue,
+    ResourceGroup,
+    SubscriptionId
+| order by TimeGenerated desc

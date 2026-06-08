@@ -1,0 +1,30 @@
+// PIM Role Activation Monitoring
+// MITRE ATT&CK: T1078.004 -- Privilege Escalation / Cloud Accounts
+// Data source: AuditLogs (Entra ID connector)
+// Detects: PIM activations outside business hours, high-privilege role activations
+
+AuditLogs
+| where TimeGenerated > ago(1d)
+| where OperationName contains "Add member to role (PIM activation)"
+       or OperationName contains "Add eligible member to role"
+| extend
+    ActivatedBy  = tostring(InitiatedBy.user.userPrincipalName),
+    Role         = tostring(TargetResources[0].displayName),
+    Scope        = tostring(TargetResources[0].id),
+    Hour         = hourofday(TimeGenerated),
+    DayOfWeek    = dayofweek(TimeGenerated)
+| extend
+    OutsideHours = Hour < 7 or Hour > 19,
+    Weekend      = DayOfWeek == 0d or DayOfWeek == 6d,
+    HighPrivRole = Role in ("Global Administrator", "Privileged Role Administrator",
+                            "Security Administrator", "Exchange Administrator")
+| project
+    TimeGenerated,
+    ActivatedBy,
+    Role,
+    Hour,
+    OutsideHours,
+    Weekend,
+    HighPrivRole,
+    RiskFlag = iff(OutsideHours or Weekend or HighPrivRole, "REVIEW", "Normal")
+| order by TimeGenerated desc
