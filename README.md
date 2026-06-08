@@ -235,7 +235,7 @@ Spoke VNet:
 ---
 
 ## Repository Structure
-
+```
 zero-trust-enterprise-network/
 ├── terraform/
 │   ├── modules/
@@ -260,7 +260,7 @@ zero-trust-enterprise-network/
 │   └── conditional-access-design.md
 └── pipelines/
     └── azure-pipelines.yml
-
+```
 ---
 
 ## Future Evolution
